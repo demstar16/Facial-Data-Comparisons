@@ -10,4 +10,6 @@ Resources:
 
 + [ ] Read Specs
 + [ ] Process CSV file
+  + [ ] Figure out how to order the headers if provided in random order
+  + [ ] Filter so we only have the wanted adultID's
 
