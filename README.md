@@ -11,6 +11,7 @@ Resources:
 + [x] Read Specs
 + [x] Process CSV file
   + [x] Filter so we only have the wanted adultID's
++ [x] Implement OP1
 + [ ] Implement OP2
 + [ ] Implement OP3
 + [ ] Implement OP4
