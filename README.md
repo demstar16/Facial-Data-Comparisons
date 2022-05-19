@@ -8,8 +8,16 @@ Resources:
  
 ## Todo
 
-+ [ ] Read Specs
-+ [ ] Process CSV file
-  + [ ] Figure out how to order the headers if provided in random order
++ [x] Read Specs
++ [x] Process CSV file
   + [x] Filter so we only have the wanted adultID's
 
++ [ ] Implement OP2
+
++ [ ] Implement OP3
+
++ [ ] Implement OP4
+
++ [ ] Additional Requirements
+    + [ ] Account for Corrupted Data
+    + [ ] Header File order??
