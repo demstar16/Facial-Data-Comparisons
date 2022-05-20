@@ -23,7 +23,10 @@ def main(csvfile, adultIDs):
     #create our OP1 return variable
     OP1 = [euclidean_dict1, euclidean_dict2]
 
-    return OP1
+    #create our OP2 return variable
+    OP2 = cosine_sim(euclidean_dict1, euclidean_dict2)
+
+    return OP1, OP2
 
 #function to read all of the csvfile
 def read_csv(csvfile):
@@ -126,18 +129,35 @@ def euclidean_dist_dict(adultID_data):
                 val1 += face_feat[2]
                 val2 += face_feat[3]
                 val3 += face_feat[4]
-                #print(f'Before sub {val1=} {val2=} {val3=}')
+                
             else:
                 val1 -= face_feat[2]
                 val2 -= face_feat[3]
                 val3 -= face_feat[4]
-                #print(f'After sub {val1=} {val2=} {val3=}')
+        
         euc_formula = ((val1**2) + (val2**2) + (val3**2))**0.5
-        #print(f'')
         euclidean_distances[abvn] = round(euc_formula,4)
  
     return euclidean_distances
 
+def cosine_sim(dict1, dict2):
+    cosine_similarity = 0
+    sum_of_multiples = 0
+    if len(dict1) == len(dict2):
+        for key1, key2 in zip(dict1, dict2):
+            sum_of_multiples += (dict1[key1] * dict2[key2])
+
+    dict1_sqr_rt_vals = sum_under_sqr_rt(dict1)
+    dict2_sqr_rt_vals = sum_under_sqr_rt(dict2)
+
+    cosine_similarity = (sum_of_multiples) / (dict1_sqr_rt_vals * dict2_sqr_rt_vals)
+    return round(cosine_similarity,4)
+
+def sum_under_sqr_rt(dict):
+    sum = 0
+    for i in dict.values():
+        sum += i**2
+    return sum**0.5    
 
 '''
 data = read_csv("sample_face_data.csv")
@@ -146,6 +166,8 @@ wanted_data = data_sort(data, ['R7033', 'P1283'])
 adult1 = wanted_data[:15]
 euclidean_vals1 = euclidean_dist_dict(adult1)
 
+sum_under_sqr_rt(euclidean_vals1)
+
 adult2 = wanted_data[15:]
 euclidean_vals2 = euclidean_dist_dict(adult2)
 
@@ -153,8 +175,12 @@ OP1 = []
 OP1.append(euclidean_vals1)
 OP1.append(euclidean_vals2)
 
+
+cosine_sim(OP1[0], OP1[1])
+
 print(OP1)
 '''
 
-print(main("sample_face_data.csv", ['r7033', 'P1283']))
-
+OP1, OP2 = main("sample_face_data.csv", ['r7033', 'P1283'])
+print(OP1)
+print(OP2)
