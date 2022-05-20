@@ -26,7 +26,16 @@ def main(csvfile, adultIDs):
     #create our OP2 return variable
     OP2 = cosine_sim(euclidean_dict1, euclidean_dict2)
 
-    return OP1, OP2
+    #OP3 functionality
+    OP3 = []
+    id_data = data_id_sort(data)
+    cosine_comp_list1 = cosine_comparisons(id_data, adultIDs, euclidean_dict1)
+    cosine_comp_list2 = cosine_comparisons(id_data, adultIDs, euclidean_dict2)
+    OP3.append(cosine_comp_list1)
+    OP3.append(cosine_comp_list2)
+   
+    return OP1, OP2, OP3
+
 
 #function to read all of the csvfile
 def read_csv(csvfile):
@@ -159,10 +168,41 @@ def sum_under_sqr_rt(dict):
         sum += i**2
     return sum**0.5    
 
+def data_id_sort(data):
+    IDs = []
+    sorted_data = [] 
+    
+    for i in range(len(data)):
+        if data[i][0] not in IDs:
+            IDs.append(data[i][0]) 
+ 
+    for index, id in enumerate(IDs):
+        sorted_data.append(list())
+        for j in range(len(data)):
+            if data[j][0] == id:
+                sorted_data[index].append(data[j])
+                
+    return sorted_data
+
+#function to compare cosine similarities of one face with every other face in data file
+def cosine_comparisons(data, IDs, euclidean_dict):
+    list = []
+
+    for i in range(len(data)):
+        if data[i][0][0] != IDs[0] and data[i][0][0] != IDs[1]:
+            euclidean_dict_id = euclidean_dist_dict(data[i])
+            current_cosine_sim = cosine_sim(euclidean_dict, euclidean_dict_id)
+            list.append((data[i][0][0], current_cosine_sim))
+
+    list.sort(key=lambda u:(-u[1],u[0]))
+    top_5_comparisons = list[:5]
+    return top_5_comparisons     
+
 '''
 data = read_csv("sample_face_data.csv")
-wanted_data = data_sort(data, ['R7033', 'P1283'])
+data_id_sort(data)
 
+wanted_data = data_sort(data, ['R7033', 'P1283'])
 adult1 = wanted_data[:15]
 euclidean_vals1 = euclidean_dist_dict(adult1)
 
@@ -181,6 +221,6 @@ cosine_sim(OP1[0], OP1[1])
 print(OP1)
 '''
 
-OP1, OP2 = main("sample_face_data.csv", ['r7033', 'P1283'])
-print(OP1)
-print(OP2)
+OP1, OP2, OP3 = main("sample_face_data.csv", ['r7033', 'P1283'])
+print(f"{OP1=} \n\n {OP2=} \n\n {OP3=}")
+
