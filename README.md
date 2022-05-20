@@ -7,15 +7,17 @@ Resources:
   + [Project Spec](https://lms.uwa.edu.au/bbcswebdav/pid-2598858-dt-content-rid-36576430_1/xid-36576430_1)
  
 ## Todo
-
 + [x] Read Specs
 + [x] Process CSV file
   + [x] Filter so we only have the wanted adultID's
 + [x] Implement OP1
 + [x] Implement OP2
-+ [ ] Implement OP3
-  + [ ] Figure out ordering when sorting
-+ [ ] Implement OP4
++ [x] Implement OP3
+  + [x] Figure out ordering when sorting
++ [x] Implement OP4
 + [ ] Additional Requirements
+    + [ ] Rounding in correct areas
     + [ ] Account for Corrupted Data
     + [ ] Header File order??
+    + [ ] Variable Names
+    + [ ] comments
