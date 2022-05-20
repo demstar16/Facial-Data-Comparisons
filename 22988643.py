@@ -24,7 +24,7 @@ def main(csvfile, adultIDs):
     OP1 = [euclidean_dict1, euclidean_dict2]
 
     #create our OP2 return variable
-    OP2 = cosine_sim(euclidean_dict1, euclidean_dict2)
+    OP2 = round(cosine_sim(euclidean_dict1, euclidean_dict2), 4)
 
     #OP3 functionality
     OP3 = []
@@ -33,9 +33,15 @@ def main(csvfile, adultIDs):
     cosine_comp_list2 = cosine_comparisons(id_data, adultIDs, euclidean_dict2)
     OP3.append(cosine_comp_list1)
     OP3.append(cosine_comp_list2)
-   
-    return OP1, OP2, OP3
 
+    #OP4 functionality
+    OP4 = []
+    euclidean_avgs1 = euclidean_avg_dist(cosine_comp_list1, id_data)
+    euclidean_avgs2 = euclidean_avg_dist(cosine_comp_list2, id_data)
+    OP4.append(euclidean_avgs1)
+    OP4.append(euclidean_avgs2)
+
+    return OP1, OP2, OP3, OP4
 
 #function to read all of the csvfile
 def read_csv(csvfile):
@@ -121,8 +127,8 @@ def euclidean_sort(data):
     return euclidean_dist
 
 
-#takes a dictionary
-#The 3D distance between two points A = (x1, y1, z1) and B = (x2, y2, z2) in cartesian plain
+
+#3D distance between two points A = (x1, y1, z1) and B = (x2, y2, z2) in cartesian plain stored in a dictionary
 def euclidean_dist_dict(adultID_data):
     face_dist_names = ['FW', 'OCW', 'LEFL', 'REFL', 'ICW', 'NW', 'ABW', 'MW', 'NBL', 'NH']
     euclidean_distances = {i:None for i in face_dist_names}
@@ -145,10 +151,11 @@ def euclidean_dist_dict(adultID_data):
                 val3 -= face_feat[4]
         
         euc_formula = ((val1**2) + (val2**2) + (val3**2))**0.5
-        euclidean_distances[abvn] = round(euc_formula,4)
+        euclidean_distances[abvn] = round(euc_formula, 4)
  
     return euclidean_distances
 
+#find cosine similarity between faces using the cosine similarity formula
 def cosine_sim(dict1, dict2):
     cosine_similarity = 0
     sum_of_multiples = 0
@@ -160,14 +167,16 @@ def cosine_sim(dict1, dict2):
     dict2_sqr_rt_vals = sum_under_sqr_rt(dict2)
 
     cosine_similarity = (sum_of_multiples) / (dict1_sqr_rt_vals * dict2_sqr_rt_vals)
-    return round(cosine_similarity,4)
+    return cosine_similarity
 
+#basic function to sum items in a list and square root result
 def sum_under_sqr_rt(dict):
     sum = 0
     for i in dict.values():
         sum += i**2
     return sum**0.5    
 
+#sort the mass data into a list of lists where each nested list holds all data for a particular ID
 def data_id_sort(data):
     IDs = []
     sorted_data = [] 
@@ -196,31 +205,31 @@ def cosine_comparisons(data, IDs, euclidean_dict):
 
     list.sort(key=lambda u:(-u[1],u[0]))
     top_5_comparisons = list[:5]
-    return top_5_comparisons     
+    rounded_t5 = []
+    #for rounding purposes
+    for i in top_5_comparisons:
+        rounded_t5.append((i[0], round(i[1], 4)))
+        
+    return rounded_t5     
 
-'''
-data = read_csv("sample_face_data.csv")
-data_id_sort(data)
+#function for finding the average euclidean distances between faces for each facial feature
+def euclidean_avg_dist(cosine_comparison_list, data):
+    face_dist_names = ['FW', 'OCW', 'LEFL', 'REFL', 'ICW', 'NW', 'ABW', 'MW', 'NBL', 'NH']
+    list = []
+    euclideans = []
+    avg_dict = {i: None for i in face_dist_names}
+        
+    for i in cosine_comparison_list:
+        list.append(i[0])
+    for i in range(len(list)):
+        for j in range(len(data)):
+            if data[j][0][0] == list[i]:
+                euclideans.append(euclidean_dist_dict(data[j]))
+    for key in avg_dict:
+        avg_dict[key] = round(sum(d[key] for d in euclideans) / len(euclideans), 4)
+    return avg_dict
 
-wanted_data = data_sort(data, ['R7033', 'P1283'])
-adult1 = wanted_data[:15]
-euclidean_vals1 = euclidean_dist_dict(adult1)
+OP1, OP2, OP3, OP4 = main("sample_face_data.csv", ['r7033', 'P1283'])
+print(f"{OP1=} \n\n {OP2=} \n\n {OP3=} \n\n {OP4=}")
 
-sum_under_sqr_rt(euclidean_vals1)
-
-adult2 = wanted_data[15:]
-euclidean_vals2 = euclidean_dist_dict(adult2)
-
-OP1 = []
-OP1.append(euclidean_vals1)
-OP1.append(euclidean_vals2)
-
-
-cosine_sim(OP1[0], OP1[1])
-
-print(OP1)
-'''
-
-OP1, OP2, OP3 = main("sample_face_data.csv", ['r7033', 'P1283'])
-print(f"{OP1=} \n\n {OP2=} \n\n {OP3=}")
 
