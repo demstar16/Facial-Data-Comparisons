@@ -16,8 +16,8 @@ Resources:
   + [x] Figure out ordering when sorting
 + [x] Implement OP4
 + [ ] Additional Requirements
-    + [ ] Rounding in correct areas
+    + [x] Rounding in correct areas
     + [ ] Account for Corrupted Data
-    + [ ] Header File order??
-    + [ ] Variable Names
-    + [ ] comments
+    + [x] Order of csv data
+    + [x] Variable Names
+    + [x] comments
