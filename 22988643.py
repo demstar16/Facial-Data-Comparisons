@@ -10,6 +10,8 @@ def main(csvfile, adultIDs):
     for i in range(len(adultIDs)):
         adultIDs[i] = adultIDs[i].upper()
 
+    valid_id(adultIDs, data)
+
     # Trim the data, so we just have what we want
     wanted_data = data_sort(data, adultIDs)
     
@@ -43,6 +45,23 @@ def main(csvfile, adultIDs):
     OP4.append(euclidean_avgs2)
 
     return OP1, OP2, OP3, OP4
+
+# Function to check the validity of the adult IDs
+def valid_id(adultIDs, data):
+    truth1 = False
+    truth2 = False
+    for i in data:
+        if i[0] == adultIDs[0]:
+            truth1 = True
+            continue
+        elif i[0] == adultIDs[1]:
+            truth2 = True
+    if truth1 and truth2:
+        pass
+    else:
+        print("Invalid Adult IDs")
+        exit(1)
+
 
 # Function to read all of the csvfile
 def read_csvfile(csvfile):
@@ -88,7 +107,7 @@ def data_sort(data, adultIDs):
     return wanted_data
 
 # Function to help sort the data into their respective facial feature
-def euclidean_sort(data):
+def facial_feat_sort(data):
     face_dist_names = ['FW', 'OCW', 'LEFL', 'REFL', 'ICW', 'NW', 'ABW', 'MW', 'NBL', 'NH']
     euclidean_dist = {i: [] for i in face_dist_names}   
     for i in range(len(data)):
@@ -148,7 +167,7 @@ def euclidean_sort(data):
 def euclidean_dist_dict(adultID_data):
     face_dist_names = ['FW', 'OCW', 'LEFL', 'REFL', 'ICW', 'NW', 'ABW', 'MW', 'NBL', 'NH']
     euclidean_distances = {i:None for i in face_dist_names}
-    sorted_dict = euclidean_sort(adultID_data)
+    sorted_dict = facial_feat_sort(adultID_data)
 
     for abvn in sorted_dict.keys():
         val1 = 0
@@ -222,7 +241,7 @@ def cosine_comparisons(data, IDs, euclidean_dict):
     list.sort(key=lambda u:(-u[1],u[0]))
     top_5_comparisons = list[:5]
     rounded_t5 = []
-    
+
     # For rounding purposes
     for i in top_5_comparisons:
         rounded_t5.append((i[0], round(i[1], 4)))
