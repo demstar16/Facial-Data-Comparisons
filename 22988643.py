@@ -3,20 +3,27 @@ __version__ = "1.0"
 
 
 def main(csvfile, adultIDs):
-   # Make the adultIDs case insensitive
+    # Make the adultIDs case insensitive
     for i in range(len(adultIDs)):
         adultIDs[i] = adultIDs[i].upper()
 
     # Read the csvfile
-    data, ids_missing_data = read_csvfile(csvfile)
-    # Checks to see if our input is corrupt, if so nothing can happen
-    for i in ids_missing_data:
-        if i in adultIDs:
-            print("adultIDs are corrupted")
-            exit(1)
-
+    if read_csvfile(csvfile) != (None, None):
+        data, ids_missing_data = read_csvfile(csvfile)
+    else:
+        return [None, None], None, [None, None], [None, None]
+    
     # Holds all data in nested lists, where each nested lists holds all for a specific ID
     id_data = id_data_sort(data)
+
+    # Checks to see if our input is corrupt, if so nothing can happen
+    corrupted_data = corruption(id_data, ids_missing_data)
+    
+    for i in corrupted_data:
+        if i in adultIDs:
+            print("adultIDs are corrupted")
+            return [None, None], None, [None, None], [None, None]
+
     # Get corrupition free data
     corrupt_free_data = corrupiton_free_data(id_data, ids_missing_data) 
     
@@ -24,7 +31,8 @@ def main(csvfile, adultIDs):
     wanted_data = data_sort(data, adultIDs)
 
     # Make sure input IDs are valid
-    valid_id(adultIDs, data)
+    if valid_id(adultIDs, data) == None: 
+        return [None, None], None, [None, None], [None, None]
     
     # Splits the adults data up respectively
     adult1_data = wanted_data[:15]
@@ -69,7 +77,8 @@ def valid_id(adultIDs, data):
         pass
     else:
         print("Invalid Adult IDs")
-        exit(1)
+        return None
+    return True
     
 # Function to read all of the csvfile
 def read_csvfile(csvfile):
@@ -99,15 +108,21 @@ def read_csvfile(csvfile):
             # Obtain all the data
             for line in f:
                 currentline = line.strip('\n').split(",")
+                if currentline == '': continue
                 if len(currentline) == 5 and '' not in currentline:
-                    data.append((str(currentline[order[0]]).upper(), str(currentline[order[1]]).upper(), 
-                    float(currentline[order[2]]), float(currentline[order[3]]), float(currentline[order[4]])))
+                   
+                    # To make sure values are within required range
+                    if float(currentline[order[2]]) > -200 and float(currentline[order[2]]) < 200:
+                        if float(currentline[order[3]]) > -200 and float(currentline[order[3]]) < 200:
+                            if float(currentline[order[4]]) > -200 and float(currentline[order[4]]) < 200:
+
+                                data.append((str(currentline[order[0]]).upper(), str(currentline[order[1]]).upper(), 
+                                float(currentline[order[2]]), float(currentline[order[3]]), float(currentline[order[4]])))
                 else:
                     ids_missing_data.append(currentline[0])
-
     except FileNotFoundError:
         print("Error finding the file")
-        exit(1)
+        return None, None
     
     return data, ids_missing_data
 
@@ -128,17 +143,15 @@ def corruption(id_data, ids_missing_data):
             # Makes sure each adult has the right amount of data
             if len(id_data[i][j]) != 5:
                 corrupted_ids.append(id_data[i][0][0])
-
+        
         if count == 15: 
             pass
         else:
-            print(f"Adult ID: {id_data[i][0][0]} has been corrupted")
             corrupted_ids.append(id_data[i][0][0])
 
     for id in ids_missing_data:
         if id not in corrupted_ids:
             corrupted_ids.append(id)
-
     return corrupted_ids
 
 # Function to return the mass data sorted and free of corrupiton
@@ -161,17 +174,12 @@ def data_sort(data, adultIDs):
             wanted_data.append(data[i])
     return wanted_data
 
-# Function to help sort the data into their respective facial feature
+# Function to help sort the data into their respective facial features
 def facial_feat_sort(data):
     face_dist_names = ['FW', 'OCW', 'LEFL', 'REFL', 'ICW', 'NW', 'ABW', 'MW', 'NBL', 'NH']
-    euclidean_dist = {i: [] for i in face_dist_names}   
-    for i in range(len(data)):
-        '''
-        mapping = {"EX_L":["OCW", "LEFL"]} # Maps poitns to the distances that require them
-        mapping = {"EX_L": []} 
-        mapping[data[i][1]] # <- Points
-        '''
+    euclidean_dist = {i: [] for i in face_dist_names} 
 
+    for i in range(len(data)):
         if data[i][1] == 'EX_L':
             euclidean_dist['OCW'].insert(1, data[i])
             euclidean_dist['LEFL'].insert(1, data[i])
@@ -240,7 +248,6 @@ def euclidean_dist_dict(adultID_data):
                 val1 += face_feat[2]
                 val2 += face_feat[3]
                 val3 += face_feat[4]
-                
             else:
                 val1 -= face_feat[2]
                 val2 -= face_feat[3]
@@ -290,20 +297,19 @@ def id_data_sort(data):
     return sorted_data
 
 # Function to compare cosine similarities of one face with every other face in data file
-def cosine_comparisons(data, IDs, euclidean_dict):
+def cosine_comparisons(data, adultIDs, euclidean_dict):
     list = []
-
     for i in range(len(data)):
-        if data[i][0][0] != IDs[0] and data[i][0][0] != IDs[1]:
+        if data[i][0][0] not in adultIDs:
             euclidean_dict_id = euclidean_dist_dict(data[i])
             current_cosine_sim = cosine_sim(euclidean_dict, euclidean_dict_id)
             list.append((data[i][0][0], current_cosine_sim))
-
+    
     list.sort(key=lambda u:(-u[1],u[0]))
     top_5_comparisons = list[:5]
-    rounded_t5 = []
 
     # For rounding purposes
+    rounded_t5 = []
     for i in top_5_comparisons:
         rounded_t5.append((i[0], round(i[1], 4)))
         
@@ -331,8 +337,5 @@ def euclidean_avg_dist(cosine_comparison_list, data):
       avg_dict[key] = round(sum(d[key] for d in euclideans) / len(euclideans), 4)
     
     return avg_dict
-
-OP1, OP2, OP3, OP4 = main("corruption_tests.csv", ['r7033', 'P1283'])
-print(f"{OP1=} \n\n {OP2=} \n\n {OP3=} \n\n {OP4=}")
 
 
