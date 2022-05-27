@@ -17,10 +17,11 @@ Resources:
 + [x] Implement OP4
 + [ ] Additional Requirements
     + [x] Rounding in correct areas
-    + [ ] Clarify what terminating gracefully means
+    + [x] Clarify terminating gracefully & what to return
     + [x] Order of csv data
     + [x] Variable Names
     + [x] comments
+    + [ ] do we need to account for spaces in CSV file?
     + [ ] Your program needs to validate the inputs to the main() function and gracefully terminate if invalid inputs are provided.
     + [ ] You program needs to terminate gracefully if the file cannot be found or opened. For graceful terminations, you need to print the message related to the problem and return None for each unavailable output.
     + [ ] Your program needs to validate the input data from the file. The X,Y or Z coordinate (or all coordinates) of a landmark could be corrupted or missing. In that case the value in the cell would be empty or out of bounds. If data is not correct, then entire row needs to be discarded.

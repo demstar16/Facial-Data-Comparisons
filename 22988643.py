@@ -3,17 +3,28 @@ __version__ = "1.0"
 
 
 def main(csvfile, adultIDs):
-    # Read the csvfile
-    data = read_csvfile(csvfile)
-
-    # Make the adultIDs case insensitive
+   # Make the adultIDs case insensitive
     for i in range(len(adultIDs)):
         adultIDs[i] = adultIDs[i].upper()
 
-    valid_id(adultIDs, data)
+    # Read the csvfile
+    data, ids_missing_data = read_csvfile(csvfile)
+    # Checks to see if our input is corrupt, if so nothing can happen
+    for i in ids_missing_data:
+        if i in adultIDs:
+            print("adultIDs are corrupted")
+            exit(1)
 
-    # Trim the data, so we just have what we want
+    # Holds all data in nested lists, where each nested lists holds all for a specific ID
+    id_data = id_data_sort(data)
+    # Get corrupition free data
+    corrupt_free_data = corrupiton_free_data(id_data, ids_missing_data) 
+    
+    # Trim the data, so we just have what we want (To improve efficiency where possible)
     wanted_data = data_sort(data, adultIDs)
+
+    # Make sure input IDs are valid
+    valid_id(adultIDs, data)
     
     # Splits the adults data up respectively
     adult1_data = wanted_data[:15]
@@ -22,7 +33,7 @@ def main(csvfile, adultIDs):
     # Gain euclidean distance dictionary for each adult
     euclidean_dict1 = euclidean_dist_dict(adult1_data)
     euclidean_dict2 = euclidean_dist_dict(adult2_data)
-   
+
     # Create our OP1 return variable
     OP1 = [euclidean_dict1, euclidean_dict2]
     
@@ -31,16 +42,15 @@ def main(csvfile, adultIDs):
     
     # Create our OP3 return variable
     OP3 = []
-    id_data = id_data_sort(data)
-    cosine_comp_list1 = cosine_comparisons(id_data, adultIDs, euclidean_dict1)
-    cosine_comp_list2 = cosine_comparisons(id_data, adultIDs, euclidean_dict2)
+    cosine_comp_list1 = cosine_comparisons(corrupt_free_data, adultIDs, euclidean_dict1)
+    cosine_comp_list2 = cosine_comparisons(corrupt_free_data, adultIDs, euclidean_dict2)
     OP3.append(cosine_comp_list1)
     OP3.append(cosine_comp_list2)
 
     # Create our OP4 return variable
     OP4 = []
-    euclidean_avgs1 = euclidean_avg_dist(cosine_comp_list1, id_data)
-    euclidean_avgs2 = euclidean_avg_dist(cosine_comp_list2, id_data)
+    euclidean_avgs1 = euclidean_avg_dist(cosine_comp_list1, corrupt_free_data)
+    euclidean_avgs2 = euclidean_avg_dist(cosine_comp_list2, corrupt_free_data)
     OP4.append(euclidean_avgs1)
     OP4.append(euclidean_avgs2)
 
@@ -53,7 +63,6 @@ def valid_id(adultIDs, data):
     for i in data:
         if i[0] == adultIDs[0]:
             truth1 = True
-            continue
         elif i[0] == adultIDs[1]:
             truth2 = True
     if truth1 and truth2:
@@ -61,10 +70,10 @@ def valid_id(adultIDs, data):
     else:
         print("Invalid Adult IDs")
         exit(1)
-
-
+    
 # Function to read all of the csvfile
 def read_csvfile(csvfile):
+    ids_missing_data = []
     data = []
     order = []
     for i in range(5):
@@ -90,13 +99,59 @@ def read_csvfile(csvfile):
             # Obtain all the data
             for line in f:
                 currentline = line.strip('\n').split(",")
-                data.append((str(currentline[order[0]]).upper(), str(currentline[order[1]]).upper(), 
-                float(currentline[order[2]]), float(currentline[order[3]]), float(currentline[order[4]])))
+                if len(currentline) == 5 and '' not in currentline:
+                    data.append((str(currentline[order[0]]).upper(), str(currentline[order[1]]).upper(), 
+                    float(currentline[order[2]]), float(currentline[order[3]]), float(currentline[order[4]])))
+                else:
+                    ids_missing_data.append(currentline[0])
+
     except FileNotFoundError:
-        print("Error finding or opening the file.")
+        print("Error finding the file")
         exit(1)
     
-    return data
+    return data, ids_missing_data
+
+# Function to return a list of corrupted IDs
+def corruption(id_data, ids_missing_data):
+    corrupted_ids = []
+
+    # Checks for missing Landmarks
+    for i in range(len(id_data)):
+        count = 0
+        landmarks = ['EX_L', 'EN_L', 'N', 'EN_R', 'EX_R', 'PRN', 'AL_L', 'AL_R', 'SBAL_L', 'SBAL_R', 'CH_L', 'CH_R', 
+        'SN', 'FT_L', 'FT_R']
+        # Makes sure all landmarks are present for an adult
+        for j in range(len(id_data[i])):
+            if id_data[i][j][1] in landmarks:
+                count += 1
+
+            # Makes sure each adult has the right amount of data
+            if len(id_data[i][j]) != 5:
+                corrupted_ids.append(id_data[i][0][0])
+
+        if count == 15: 
+            pass
+        else:
+            print(f"Adult ID: {id_data[i][0][0]} has been corrupted")
+            corrupted_ids.append(id_data[i][0][0])
+
+    for id in ids_missing_data:
+        if id not in corrupted_ids:
+            corrupted_ids.append(id)
+
+    return corrupted_ids
+
+# Function to return the mass data sorted and free of corrupiton
+def corrupiton_free_data(id_data, ids_missing_data):
+    corrupt_free = []
+    #list of corrupted adultIDs
+    corrupted_ids = corruption(id_data, ids_missing_data)
+
+    for i in id_data:
+        if i[0][0] not in corrupted_ids:
+            corrupt_free.append(i)
+            
+    return corrupt_free
 
 # Function to return a list only containing data relevant to given adultIDs
 def data_sort(data, adultIDs):
@@ -111,6 +166,12 @@ def facial_feat_sort(data):
     face_dist_names = ['FW', 'OCW', 'LEFL', 'REFL', 'ICW', 'NW', 'ABW', 'MW', 'NBL', 'NH']
     euclidean_dist = {i: [] for i in face_dist_names}   
     for i in range(len(data)):
+        '''
+        mapping = {"EX_L":["OCW", "LEFL"]} # Maps poitns to the distances that require them
+        mapping = {"EX_L": []} 
+        mapping[data[i][1]] # <- Points
+        '''
+
         if data[i][1] == 'EX_L':
             euclidean_dist['OCW'].insert(1, data[i])
             euclidean_dist['LEFL'].insert(1, data[i])
@@ -261,12 +322,17 @@ def euclidean_avg_dist(cosine_comparison_list, data):
         for j in range(len(data)):
             if data[j][0][0] == list[i]:
                 euclideans.append(euclidean_dist_dict(data[j]))
+    
+    if len(euclideans) == 0:
+        print("Not enough Test data for Average Euclidean Distance functionality")
+        return None
+
     for key in avg_dict:
       avg_dict[key] = round(sum(d[key] for d in euclideans) / len(euclideans), 4)
     
     return avg_dict
 
-OP1, OP2, OP3, OP4 = main("order_testing.csv", ['r7033', 'P1283'])
+OP1, OP2, OP3, OP4 = main("corruption_tests.csv", ['r7033', 'P1283'])
 print(f"{OP1=} \n\n {OP2=} \n\n {OP3=} \n\n {OP4=}")
 
 
